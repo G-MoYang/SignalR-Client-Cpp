@@ -179,6 +179,18 @@ namespace signalr
             const auto& binary = v.as_binary();
             return Json::Value(base64Encode(binary));
         }
+        case signalr::value_type::int32:
+            return Json::Value(v.as_int());
+        case signalr::value_type::map_array:
+        {
+            const auto& array = v.as_map_array();
+            Json::Value vec(Json::ValueType::arrayValue);
+            for (auto& val : array)
+            {
+                vec.append(createJson(val));
+            }
+            return vec;
+        }
         case signalr::value_type::null:
         default:
             return Json::Value(Json::ValueType::nullValue);

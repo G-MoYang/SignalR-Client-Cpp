@@ -85,6 +85,6 @@ list (APPEND libraries ${JSONCPP_LIB})
 
 list (APPEND libraries gtest)
 
-target_link_libraries(signalrclienttests ${libraries})
+target_link_libraries(signalrclienttests ${libraries} atomic)
 
 add_test(NAME signalrclienttests COMMAND signalrclienttests)

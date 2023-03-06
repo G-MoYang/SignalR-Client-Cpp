@@ -23,7 +23,9 @@ namespace signalr
         float64,
         null,
         boolean,
-        binary
+        binary,
+        int32,
+        map_array
     };
 
     /**
@@ -107,6 +109,21 @@ namespace signalr
          */
         SIGNALRCLIENT_API value(std::vector<uint8_t>&& bin);
 
+         /**
+         * Create an object representing a value_type::int with the given int value.
+         */
+        SIGNALRCLIENT_API value(int val);
+         
+        /**
+         * Create an object representing a value_type::map_array with the given an array map of string-value's.
+         */
+        SIGNALRCLIENT_API value(const std::vector<std::map<std::string, value>>& map_array);
+
+        /**
+         * Create an object representing a value_type::map_array with the given array map of string-value's.
+         */
+        SIGNALRCLIENT_API value(std::vector<std::map<std::string, value>>& map_array);
+
         /**
          * Copies an existing value.
          */
@@ -168,6 +185,16 @@ namespace signalr
         SIGNALRCLIENT_API bool is_binary() const;
 
         /**
+         * True if the object stored is an int of signalr::value's.
+         */
+        SIGNALRCLIENT_API bool is_int() const;
+
+        /**
+         * True if the object stored is an map array of signalr::value's.
+         */
+        SIGNALRCLIENT_API bool is_map_array() const;
+
+        /**
          * Returns the stored object as a double. This will throw if the underlying object is not a signalr::type::float64.
          */
         SIGNALRCLIENT_API double as_double() const;
@@ -198,6 +225,16 @@ namespace signalr
         SIGNALRCLIENT_API const std::vector<uint8_t>& as_binary() const;
 
         /**
+         * Returns the stored object as an int of bytes. This will throw if the underlying object is not a signalr::type::int.
+         */
+        SIGNALRCLIENT_API int as_int() const;
+
+        /**
+         * Returns the stored object as a map array of property name to signalr::value. This will throw if the underlying object is not a signalr::type::map_array.
+         */
+        SIGNALRCLIENT_API const std::vector<std::map<std::string, value>>& as_map_array() const;
+
+        /**
          * Returns the signalr::type that represents the stored object.
          */
         SIGNALRCLIENT_API value_type type() const;
@@ -213,7 +250,8 @@ namespace signalr
             double number;
             std::map<std::string, value> map;
             std::vector<uint8_t> binary;
-
+            int int_number;
+            std::vector<std::map<std::string, value>> map_array;
             // constructor of types in union are not implicitly called
             // this is expected as we only construct a single type in the union once we know
             // what that type is when constructing the signalr_value type.
