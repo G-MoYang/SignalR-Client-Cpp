@@ -27,6 +27,10 @@ namespace signalr
             return "boolean";
         case signalr::value_type::binary:
             return "binary";
+        case signalr::value_type::int32:
+            return "int32";
+        case signalr::value_type::map_array:
+            return "map array";
         default:
             return std::to_string((int)v);
         }
@@ -57,6 +61,12 @@ namespace signalr
             break;
         case value_type::binary:
             new (&mStorage.binary) std::vector<uint8_t>();
+            break;
+        case value_type::int32:
+            mStorage.int_number = 0;
+            break;
+        case value_type::map_array:
+            new (&mStorage.map_array) std::vector<std::map<std::string, value>>();
             break;
         case value_type::null:
         default:
@@ -124,6 +134,22 @@ namespace signalr
         new (&mStorage.binary) std::vector<uint8_t>(std::move(bin));
     }
 
+    value::value(int val) : mType(value_type::int32)
+    {
+        mStorage.int_number = val;
+    }
+
+    value::value(const std::vector<std::map<std::string, value>>& map_array) : mType(value_type::map_array)
+    {
+        new (&mStorage.map_array) std::vector<std::map<std::string, value>>(map_array);
+    }
+
+    value::value(std::vector<std::map<std::string, value>>& map_array) : mType(value_type::map_array)
+    {
+        new (&mStorage.map_array) std::vector<std::map<std::string, value>>(map_array);
+    }
+
+
     value::value(const value& rhs)
     {
         mType = rhs.mType;
@@ -146,6 +172,12 @@ namespace signalr
             break;
         case value_type::binary:
             new (&mStorage.binary) std::vector<uint8_t>(rhs.mStorage.binary);
+            break;
+        case value_type::int32:
+            mStorage.int_number = rhs.mStorage.int_number;
+            break;
+        case value_type::map_array:
+            new (&mStorage.map_array) std::vector<std::map<std::string, value>>(rhs.mStorage.map_array);
             break;
         case value_type::null:
         default:
@@ -176,6 +208,12 @@ namespace signalr
         case value_type::binary:
             new (&mStorage.binary) std::vector<uint8_t>(std::move(rhs.mStorage.binary));
             break;
+        case value_type::int32:
+            mStorage.int_number = std::move(rhs.mStorage.int_number);
+            break;
+        case value_type::map_array:
+            new (&mStorage.map_array) std::vector<std::map<std::string, value>>(std::move(rhs.mStorage.map_array));
+            break;
         case value_type::null:
         default:
             break;
@@ -203,9 +241,13 @@ namespace signalr
         case value_type::binary:
             mStorage.binary.~vector();
             break;
+        case value_type::map_array:
+            mStorage.map_array.~vector();
+            break;
         case value_type::null:
         case value_type::float64:
         case value_type::boolean:
+        case value_type::int32:
         default:
             break;
         }
@@ -236,6 +278,13 @@ namespace signalr
         case value_type::binary:
             new (&mStorage.binary) std::vector<uint8_t>(rhs.mStorage.binary);
             break;
+        case value_type::int32:
+            mStorage.number = rhs.mStorage.int_number;
+            break;
+        case value_type::map_array:
+            new (&mStorage.map_array) std::vector<std::map<std::string, value>>(rhs.mStorage.map_array);
+            break;
+
         case value_type::null:
         default:
             break;
@@ -268,6 +317,12 @@ namespace signalr
             break;
         case value_type::binary:
             new (&mStorage.binary) std::vector<uint8_t>(std::move(rhs.mStorage.binary));
+            break;
+        case value_type::int32:
+            mStorage.number = std::move(rhs.mStorage.int_number);
+            break;
+        case value_type::map_array:
+            new (&mStorage.map_array) std::vector<std::map<std::string, value>>(std::move(rhs.mStorage.map_array));
             break;
         case value_type::null:
         default:
@@ -310,6 +365,16 @@ namespace signalr
     bool value::is_binary() const
     {
         return mType == signalr::value_type::binary;
+    }
+
+    bool value::is_int() const
+    {
+        return mType == signalr::value_type::int32;
+    }
+
+    bool value::is_map_array() const
+    {
+        return mType == signalr::value_type::map_array;
     }
 
     double value::as_double() const
@@ -370,6 +435,26 @@ namespace signalr
         }
 
         return mStorage.binary;
+    }
+
+    int value::as_int() const
+    {
+        if (!is_int())
+        {
+            throw signalr_exception("object is a '" + value_type_to_string(mType) + "' expected it to be a 'int32'");
+        }
+
+        return mStorage.int_number;
+    }
+    
+    const std::vector<std::map<std::string, value>>& value::as_map_array() const
+    {
+        if (!is_map_array())
+        {
+            throw signalr_exception("object is a '" + value_type_to_string(mType) + "' expected it to be a 'map array'");
+        }
+
+        return mStorage.map_array;
     }
 
     value_type value::type() const
